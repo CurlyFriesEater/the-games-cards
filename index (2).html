@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>The Games - Delay Cards Deck</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #444; /* solid gray background */
+      color: white;
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    h1 {
+      margin: 20px;
+    }
+
+    button {
+      padding: 15px 30px;
+      border: none;
+      border-radius: 10px;
+      background: #fff;
+      color: #444;
+      font-size: 1em;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      transition: transform 0.2s, background 0.3s;
+      margin-bottom: 20px;
+      z-index: 10;
+    }
+
+    button:hover:enabled {
+      background: #f0f0f0;
+      transform: scale(1.05);
+    }
+
+    button:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+
+    #playArea {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      width: 100%;
+    }
+
+    /* Deck area */
+    .deck {
+      position: fixed;
+      bottom: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .deck-card {
+      width: 120px;
+      height: 180px;
+      border-radius: 10px;
+      background: url("card-back.png") center/cover no-repeat;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+      transform: rotate(90deg);
+      margin-left: -60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 14px;
+      text-shadow: 1px 1px 2px black;
+    }
+
+    /* Active drawn card */
+    .active-card {
+      position: absolute;
+      width: 300px;
+      height: 180px;
+      border-radius: 12px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform-style: preserve-3d;
+      transition: transform 0.8s ease, top 0.8s ease, left 0.8s ease, opacity 0.8s ease;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .card-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
+      backface-visibility: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .card-front {
+      background: white;
+      color: black;
+      font-size: 1.2em;
+      font-weight: bold;
+    }
+
+    .card-back {
+      background: url("card-back.png") center/cover no-repeat;
+      color: white;
+      text-shadow: 1px 1px 2px black;
+      font-weight: bold;
+      font-size: 20px;
+      transform: rotateY(180deg);
+    }
+
+    /* Fade out discard */
+    .discard {
+      opacity: 0;
+      transform: translate(-50%, -50%) rotateY(180deg) scale(0.8);
+    }
+  </style>
+</head>
+<body>
+  <h1>The Games</h1>
+  <button id="drawBtn" onclick="drawCard()">Draw a Card</button>
+
+  <div id="playArea"></div>
+
+  <!-- Deck at bottom -->
+  <div class="deck" id="deck">
+    <div class="deck-card">The Games</div>
+    <div class="deck-card">The Games</div>
+    <div class="deck-card">The Games</div>
+    <div class="deck-card">The Games</div>
+    <div class="deck-card">The Games</div>
+  </div>
+
+  <script>
+    const cards = [
+      "Stop where you are and yell 'GYAT'!",
+      "Do 10 jumping jacks.",
+      "Find a stick and bring it to your opponent. They must guess how long it is. If they're not within 3 inches, they get to run away!",
+      "Spin around in a circle 5 times before moving again.",
+      "Pretend to be a robot for the next 30 seconds.",
+      "Sing your favorite song out loud before continuing.",
+      "Balance on one foot for 20 seconds.",
+      "Do your best animal impression before moving again."
+    ];
+
+    let drawing = false;
+    let currentCard = null;
+
+    function drawCard() {
+      if (drawing) return;
+      const deck = document.getElementById("deck");
+      const drawBtn = document.getElementById("drawBtn");
+      const playArea = document.getElementById("playArea");
+
+      // If no cards left in deck
+      if (deck.children.length === 0) {
+        drawBtn.disabled = true;
+        return;
+      }
+
+      drawing = true;
+
+      // If there's already a card on table, flip & fade it away
+      if (currentCard) {
+        currentCard.classList.add("discard");
+        setTimeout(() => {
+          playArea.removeChild(currentCard);
+          currentCard = null;
+          actuallyDrawNewCard();
+        }, 800); // matches CSS transition
+      } else {
+        actuallyDrawNewCard();
+      }
+
+      function actuallyDrawNewCard() {
+        // remove a card from the deck
+        deck.removeChild(deck.lastElementChild);
+
+        // pick a random card text
+        const text = cards[Math.floor(Math.random() * cards.length)];
+
+        // create new active card
+        const newCard = document.createElement("div");
+        newCard.className = "active-card";
+        newCard.style.left = "50%";
+        newCard.style.top = "100%";
+        newCard.style.transform = "translate(-50%, -50%) rotate(90deg)";
+
+        // faces
+        const front = document.createElement("div");
+        front.className = "card-face card-front";
+        front.innerText = ""; // hidden until flip reveal
+
+        const back = document.createElement("div");
+        back.className = "card-face card-back";
+        back.innerText = "The Games";
+
+        newCard.appendChild(front);
+        newCard.appendChild(back);
+
+        playArea.appendChild(newCard);
+        currentCard = newCard;
+
+        // slide up into view
+        setTimeout(() => {
+          newCard.style.top = "40%";
+          newCard.style.left = "50%";
+          newCard.style.transform = "translate(-50%, -50%) rotateY(0deg)";
+        }, 50);
+
+        // flip animation
+        setTimeout(() => {
+          newCard.style.transform = "translate(-50%, -50%) rotateY(180deg)";
+        }, 500);
+
+        // reveal text AFTER flip
+        setTimeout(() => {
+          front.innerText = text;
+          newCard.style.transform = "translate(-50%, -50%) rotateY(0deg)";
+          drawing = false;
+
+          // disable button if deck is empty after draw
+          if (deck.children.length === 0) {
+            drawBtn.disabled = true;
+          }
+        }, 1300);
+      }
+    }
+  </script>
+</body>
+</html>
